@@ -2,6 +2,11 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import django_rq
+from dotenv import load_dotenv
+# from mailer.management.commands import runmailer_pg
+load_dotenv(override=True)
+# django_rq.enqueue(runmailer_pg)
 
 
 def main():

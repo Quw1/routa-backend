@@ -6,7 +6,8 @@ class Trip(models.Model):
     created_by = models.ForeignKey(to=User, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     start_date = models.DateField()
-    polyline = models.TextField()
+    polyline = models.TextField(blank=True)
+    cover_url = models.CharField(max_length=255, null=True)
 
     class Meta:
         ordering: ['-start_date']

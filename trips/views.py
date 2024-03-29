@@ -4,9 +4,11 @@ from .serializers import TripSerializer
 from .models import Trip
 from rest_framework import permissions
 from .permissions import IsOwner
+from .renderers import TripRenderer
 
 
 class TripListAPIView(ListCreateAPIView):
+    renderer_classes = (TripRenderer,)
     serializer_class = TripSerializer
     queryset = Trip.objects.all()
     permission_classes = (permissions.IsAuthenticated, IsOwner,)
@@ -19,12 +21,11 @@ class TripListAPIView(ListCreateAPIView):
 
 
 class TripDetailsAPIView(RetrieveUpdateDestroyAPIView):
+    renderer_classes = (TripRenderer,)
     serializer_class = TripSerializer
     queryset = Trip.objects.all()
     permission_classes = (permissions.IsAuthenticated, IsOwner,)
     lookup_field = 'id'
-
-
 
     def get_queryset(self):
         return self.queryset.filter(created_by=self.request.user)

@@ -9,6 +9,13 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
 faker = "*"
+django-cors-headers = "*"
+python-dotenv = "*"
+google-api-python-client = "*"
+psycopg2 = "*"
+django-mailer = "*"
+jsonfield = "*"
+bleach = "*"
 
 [dev-packages]
 

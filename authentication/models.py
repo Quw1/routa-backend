@@ -1,8 +1,13 @@
-
+import uuid
 from django.db import models
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from rest_framework_simplejwt.tokens import RefreshToken
+
+AUTH_PROVIDERS = {
+    'email': 'email',
+    'google': 'google'
+}
 
 
 class UserManager(BaseUserManager):
@@ -35,6 +40,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    auth_provider = models.CharField(max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
+    personal_token_secret = models.CharField(max_length=36, default=str(uuid.uuid4()))
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -46,7 +53,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def tokens(self):
         refresh = RefreshToken.for_user(self)
+        refresh['user_secret'] = self.personal_token_secret
         return {
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+    def set_new_personal_secret(self):
+        self.personal_token_secret = str(uuid.uuid4())

@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from .renderers import UserRenderer
 from .serializers import (
     RegisterSerializer, EmailVerificationSerializer, LoginSerializer, ResetPasswordEmailRequestSerializer,
-    SetNewPasswordSerializer
+    SetNewPasswordSerializer, GetUserSerializer
 )
 from rest_framework.response import Response
 from rest_framework import status, views
@@ -18,6 +18,7 @@ from drf_yasg import openapi
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework import permissions
 
 
 class RegisterAPIView(GenericAPIView):
@@ -71,21 +72,34 @@ class VerifyEmailAPIView(views.APIView):
                 user.is_verified = True
                 user.save()
 
-            return Response({'status': 'Successfully activated'}, status=status.HTTP_200_OK)
+            return Response({'status': 'OK'}, status=status.HTTP_200_OK)
 
         except jwt.ExpiredSignatureError:
             # TODO: New confirmation link mechanic
-            return Response({'status': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': 'EXP'}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.exceptions.DecodeError:
-            return Response({'status': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'status': 'INV'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(GenericAPIView):
     serializer_class = LoginSerializer
+    renderer_classes = (UserRenderer,)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetUserAPIView(GenericAPIView):
+    serializer_class = GetUserSerializer
+    renderer_classes = (UserRenderer,)
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = None
+
+    def get(self, request):
+        user = request.user
+        serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -122,6 +136,8 @@ class RequestPasswordResetEmailAPIView(GenericAPIView):
 
 
 class PasswordTokenCheckAPIView(GenericAPIView):
+    serializer_class = SetNewPasswordSerializer
+
     def get(self, request, uidb64, token):
         try:
             uid = smart_str(urlsafe_base64_decode(uidb64))
@@ -146,3 +162,15 @@ class SetNewPasswordAPIView(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'success': 'Successfuly reset'}, status=status.HTTP_200_OK)
+
+
+class LogoutAPIView(views.APIView):
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        user.set_new_personal_secret()
+        user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

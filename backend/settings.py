@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--bm2)7fi@!sdo2#ggehqf-tugsg(81oava&_6@-aggu(wsmr(-'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'localhost:5173']
 
 
 # Application definition
@@ -39,9 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    # 'rest_framework_simplejwt.token_blacklist',
+    'mailer',
+    # 'post_office',
     'drf_yasg',
     'authentication',
     'trips',
+    'social_auth',
+    'django_rq',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +66,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
     'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'authentication.custom_auth.CustomAuth',
     ),
 }
 
@@ -89,9 +95,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        'NAME': os.environ.get('DB_NAME'),
+
+        'USER': os.environ.get('DB_USER'),
+
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+
+        'HOST': os.environ.get('DB_HOST'),
+
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
@@ -139,6 +153,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentication.User'
 
+
+EMAIL_BACKEND = "mailer.backend.DbBackend"
+# EMAIL_BACKEND = 'post_office.EmailBackend'
+
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
@@ -159,4 +177,44 @@ SWAGGER_SETTINGS = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': os.environ.get('REDDIS_HOST'),
+        'PORT': int(os.environ.get('REDDIS_PORT')),
+        'DB': 0,
+        'USERNAME': os.environ.get('REDDIS_USER'),
+        'PASSWORD': os.environ.get('REDDIS_PASSWORD'),
+        'DEFAULT_TIMEOUT': 360,
+    },
+    'with-sentinel': {
+        'SENTINELS': [('localhost', 26736), ('localhost', 26737)],
+        'MASTER_NAME': 'redismaster',
+        'DB': 0,
+        # Redis username/password
+        'USERNAME': 'redis-user',
+        'PASSWORD': 'secret',
+        'SOCKET_TIMEOUT': 0.3,
+        'CONNECTION_KWARGS': {  # Eventual additional Redis connection arguments
+            'ssl': True
+        },
+        'SENTINEL_KWARGS': {    # Eventual Sentinel connection arguments
+            # If Sentinel also has auth, username/password can be passed here
+            'username': 'sentinel-user',
+            'password': 'secret',
+        },
+    },
+    'high': {
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'), # If you're on Heroku
+        'DEFAULT_TIMEOUT': 500,
+    },
+    'low': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    }
 }

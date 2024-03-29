@@ -40,8 +40,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/docs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('api/auth/', include('authentication.urls')),
+    path('api/social_auth/', include('social_auth.urls')),
     path('api/trips/', include('trips.urls')),
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
+
+]
+
+urlpatterns += [
+    path('django-rq/', include('django_rq.urls'))
 ]
