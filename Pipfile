@@ -16,6 +16,9 @@ psycopg2 = "*"
 django-mailer = "*"
 jsonfield = "*"
 bleach = "*"
+django-admin-interface = "*"
+pandas = "*"
+openpyxl = "*"
 
 [dev-packages]
 

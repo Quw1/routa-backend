@@ -17,16 +17,16 @@ class Trip(models.Model):
 
 
 class Location(models.Model):
-    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    longitude = models.FloatField()
-    latitude = models.FloatField()
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="locations")
+    name = models.CharField(max_length=250)
+    place_id = models.TextField()
 
 
 class DayPlace(models.Model):
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    time_start = models.DateTimeField()
-    time_end = models.DateTimeField()
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="places")
+    name = models.CharField(max_length=250)
+    visited = models.BooleanField()
+    sort_id = models.IntegerField()
 
 
 class Post(models.Model):

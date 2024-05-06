@@ -39,7 +39,7 @@ class RegisterAPIView(GenericAPIView):
 
         current_site = get_current_site(request).domain
         relative_link = reverse('email-verify')
-        absurl = 'http://' + current_site + relative_link + "?token=" + str(token)
+        absurl = 'http://localhost:5173/activate?token=' + str(token)
         email_body = f"""
         Hey, {user.username}! \nPlease verify your email address by clicking this link: \n{absurl}
         """
